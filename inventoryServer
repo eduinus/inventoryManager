@@ -1,0 +1,2 @@
+-record Inventory mappings
+-serve inventory Qs to drone, viewing pc etc.
