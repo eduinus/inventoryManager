@@ -1,2 +1,3 @@
 -record Inventory mappings
--serve inventory Qs to drone, viewing pc etc.
+-serve inventory Qs to drones, viewing pc etc.
+-give commands to put drone, pull drone
