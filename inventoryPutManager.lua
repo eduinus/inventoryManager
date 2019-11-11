@@ -1,3 +1,4 @@
+Rewrite for robots?
 actually put all this in server. Just have drones take commands.
 also, move shit to center of storage room!
 
