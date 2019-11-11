@@ -1,6 +1,12 @@
---sit on charger until something is in chest
---load up on as much of it as you can
---pass item name to robot and quantity, get right location(s) (in case you need to place some in a new chest b/c old one will be full)
---return to charger
-
---if sitting on chest and power low, charge
+--get server ok to run?
+while oktorun
+  if energylow then
+    os.sleep(5)
+    print("chargin... "..energy)
+  elseif there's something in the chest
+    suck up as much of it as you can
+    pass item name and quantity to server, get right locations (in case you need to fill 2)
+    go to addresses and dump the stuff
+    return to charger
+  end
+end
