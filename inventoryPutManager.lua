@@ -1,4 +1,3 @@
-Rewrite for robots? - which is faster given inventory constraints and base speed?
 actually put all this in server. Just have drones take commands.
 also, move shit to center of storage room!
 
