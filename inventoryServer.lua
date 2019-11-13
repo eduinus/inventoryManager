@@ -1,35 +1,24 @@
--record Inventory mappings
--serve inventory Qs to drones, viewing pc etc.
+--[[local component = require("component")
+local event = require("event")
+local modem = component.modem
+
+To do:
+-record Inventory storage system
+-serve questions to viewing pc
 -give commands to put drone, pull drone
-
-Putter: actually put all this in server. Just have drones take commands.
-also, move shit to center of storage room!
-
---get server ok to run?
-while oktorun
-  if energylow then
-    os.sleep(5)
-    print("chargin... "..energy)
-  elseif there's something in the chest
-    suck up as much of it as you can
-    pass item name and quantity to server, get right locations (in case you need to fill 2)
-    go to addresses and dump the stuff
-    return to charger
-  end
+-helpful graphics? / data?
+  
+while true do
+  if storage has changed, render screen differently
+  tell pusher to check if needs to charge.
+      tell pusher to check if anything is in the chest
+        if so, store the item (such up as much of it as you can, fill 2 if necessary)
+  check if message from inventory PC
+        if so, give orders to pull drone or serve array info
 end
+]]--
 
-Puller: actually put all this in server. Just have drones take commands.
-also, move shit to center of storage room!
-
---get server ok to run?
-while oktorun
-  if energylow then
-    os.sleep(5)
-    print("chargin... "..energy)
-  elseif there's something in the chest
-    suck up as much of it as you can
-    pass item name and quantity to server, get right locations (in case you need to fill 2)
-    go to addresses and dump the stuff
-    return to charger
-  end
+while true do
+x = event.pull(1, "key_down")
+print(x)
 end
