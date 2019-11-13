@@ -1,7 +1,8 @@
---[[local component = require("component")
+local component = require("component")
 local event = require("event")
 local modem = component.modem
-
+local term = require("term")
+--[[
 To do:
 -record Inventory storage system
 -serve questions to viewing pc
@@ -18,7 +19,10 @@ while true do
 end
 ]]--
 
-while true do
-x = event.pull(1, "key_down")
-print(x)
+continue = true
+while continue do
+  x,y,z,r,e = event.pull(1, "key_down")
+  if z==113 and r==16 and e=="Eduinus" then
+    continue = false
+  end
 end
