@@ -87,7 +87,7 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
       end
       if (itemStorage[i][1] == itemName and itemStorage[i][2] < 262144) or table.getn(itemStorage) == 0 then
 		  x,y,z = invNumToCoords(i)
-		  if port == pullPort then x-1 z-1 end
+		  if port == pullPort then x = x-1 z = z-1 end
 		  dr(port, "drone.move(0,-2,0)")
 		  dr(port, "drone.move("..x..",0,"..z..")")
 		  dr(port, "drone.move(0,"..y..",0)")
@@ -127,7 +127,7 @@ function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
 	for i=1, table.getn(itemStorage) do -- tell bot to move to right spot
       if itemStorage[i][1] == itemName and itemStorage[i][2] > 0 then
 	    x,y,z = invNumToCoords(i)
-	    if port == pullPort then x-1 z-1 end
+	    if port == pullPort then x = x-1 z = z-1 end
 	    break
 	  end
 	  if i == table.getn(itemStorage) then
