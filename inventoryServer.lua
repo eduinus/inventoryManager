@@ -76,7 +76,7 @@ end
 
 function pushRelocate(port,itemName) -- starting from HQ, then return!
   if table.getn(itemStorage) == 7392 then
-    dr(port, "setStatusText("Storage Full!")")
+    dr(port, "setStatusText('Storage Full!')")
 	return false
   else
     for i=1, table.getn(itemStorage)+1 do
@@ -131,7 +131,7 @@ function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
 	    break
 	  end
 	  if i == table.getn(itemStorage) then
-	    dr(port, "setStatusText("No such item(s)")")
+	    dr(port, "setStatusText('No such item(s)')")
 		return false
 	  end
     end
