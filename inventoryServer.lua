@@ -165,12 +165,14 @@ while continue do
   x,y,z,r,e = event.pull(1, "key_down")
   if z==113 and r==16 and e=="Eduinus" then
     continue = false
+    print("quitting")
   end
   
   x,y,z,r,e = event.pull(1, "key_down")
   if z==13 and r==28 and e=="Eduinus" then
-    dr(pullPort, "drone.move(0,3,0)")
-    dr(pushPort, "drone.move(0,3,0)")
+    dr(pullPort, "drone.move(0,2,0)")
+    dr(pushPort, "drone.move(0,2,0)")
+    print("awoke")
   end
 
   if storageChange or command then
