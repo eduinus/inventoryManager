@@ -166,11 +166,18 @@ while continue do
   if z==113 and r==16 and e=="Eduinus" then
     continue = false
   end
+  
+  x,y,z,r,e = event.pull(1, "key_down")
+  if z==13 and r==28 and e=="Eduinus" then
+    dr(pullPort, "drone.move(0,3,0)")
+    dr(pushPort, "drone.move(0,3,0)")
+  end
 
   if storageChange or command then
     term.clear()
-    --render screen according to inventory and display Q as quit option
+    --render screen according to inventory and display Q as quit option and show when activated
 	--also show recent operations!
+	-- also show start button (enter) and show when activated
   end
   storageChange = false
   command = false
