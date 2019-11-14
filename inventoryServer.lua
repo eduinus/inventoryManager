@@ -196,7 +196,7 @@ while continue do
         dr(pushPort, "ic.suckFromSlot(3,slot)")
         sucks = sucks + 1
       end
-	  if (slot = 1 or sucks == 8) and dr(pushPort, "ic.getStackInInternalSlot(1)") ~= nil then
+	  if (slot == 1 or sucks == 8) and dr(pushPort, "ic.getStackInInternalSlot(1)") ~= nil then
         pushRelocate(pushPort,itemName)
 		storageChange = true
 		break
