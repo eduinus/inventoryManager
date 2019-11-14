@@ -80,7 +80,7 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 	return false
   else
     for i=1, table.getn(itemStorage)+1 do
-      if (i = table.getn(itemStorage)+1) or (table.getn(itemStorage) == 0) then
+      if (i == table.getn(itemStorage)+1) or (table.getn(itemStorage) == 0) then
         itemStorage[i] = {}
         itemStorage[i][1] = itemName
         itemStorage[i][2] = 0
