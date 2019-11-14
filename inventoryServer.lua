@@ -204,7 +204,7 @@ while continue do
     end
   end
   
-  evt,_,_,_,_,request=computer.pullSignal()
+  evt,_,_,_,_,request=event.pull()
   if evt=="modem_message" then
 	if string.sub(request, 1, 2) == "s;" then
 	  searchItem = string.sub(request, 3, string.len(request))
