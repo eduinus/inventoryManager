@@ -213,7 +213,7 @@ while continue do
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
     foundItem = nil
     sucks = 0
-    slotx = dr(pushPort, "ic.getInventorySize(3)")
+    slotx = tonumber(dr(pushPort, "ic.getInventorySize(3)"))
     for slot = slotx, 1, -1 do
       item = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
       if foundItem == nil and item ~= nil then
