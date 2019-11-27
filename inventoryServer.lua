@@ -32,14 +32,14 @@ modem.open(2411) -- inventory pull requests
 
 function loadTable(location)
   --returns a table stored in a file.
-  local tableFile = pcall(io.open(location))
+  local tableFile = io.open(location,"r")
   if tableFile == false then return {} end
   return serialization.unserialize(tableFile:read("*all"))
 end
 
 function saveTable(table, location)
   --saves a table to a file
-  local tableFile = assert(io.open(location, "w"))
+  local tableFile = io.open(location, "w")
   tableFile:write(serialization.serialize(table))
   tableFile:close()
 end
