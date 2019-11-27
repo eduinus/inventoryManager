@@ -177,6 +177,7 @@ while continue do
   end
   
   if evt=="modem_message" then
+    if request ~= nil then
 	if string.sub(request, 1, 2) == "s;" then
 	  searchItem = string.sub(request, 3, string.len(request))
 	  local results = {} resultsCount = 1
@@ -206,6 +207,7 @@ while continue do
 	  pullRelocate(pullPort,pullItem,pullItemQuantity)
 	  storageChange = true
 	end
+    end
   end
 
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
