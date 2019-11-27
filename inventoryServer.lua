@@ -205,21 +205,7 @@ end
 continue = true
 while continue do
   evt,y,z,r,e,request = event.pull(1)
-  if evt == "key_down" then
-    if z==113 and r==16 then
-      continue = false
-      print("Quitting!")
-      break
-    end
-    if z==13 and r==28 then
-      dr(pullPort, "drone.move(0,2,0)")
-      waitForStop(port)
-      dr(pushPort, "drone.move(0,2,0)")
-      waitForStop(port)
-      print("Awoke!")
-    end
-  end
- 
+  -- removed quit and awake key commands
   if evt=="modem_message" then
     if request ~= nil then
     if string.sub(request, 1, 2) == "s;" then
@@ -293,9 +279,9 @@ while continue do
  
   if storageChange or command then
     term.clear()
-    --render screen according to inventory and display Q as quit option and show when activated
+    --render screen according to inventory
     --also show recent operations! (command)
-    --also show start button (enter) and show when activated
+    -- cntrl alt c to quit
   end
   storageChange = false
   command = false
