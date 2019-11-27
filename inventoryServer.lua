@@ -279,7 +279,7 @@ while continue do
           sucks = sucks + 1
         end
       end
-      if (slot == slotx or sucks == 8) and sucks > 0 then
+      if (slot == slotx or sucks == 8 or not something) and sucks > 0 then
         print("Storing the stuff!")
 	pushRelocate(pushPort, foundItemName, foundItemID, foundItemDmg)
         storageChange = true
