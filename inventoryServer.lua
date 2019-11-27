@@ -6,7 +6,17 @@ local serial = require("serialization")
 
 function dr(port, cmd)
   modem.broadcast(port, "return "..cmd)
-  return select(6, event.pull(1, "modem_message"))
+  ayy = select(6, event.pull(1, "modem_message"))
+  os.sleep(0.1)
+  return ayy
+end
+
+function tableLength(table)
+  count = 1
+  while table[count] ~= nil do
+    count=count+1
+  end
+  return count-1
 end
 
 pushPort = 2412
@@ -37,26 +47,26 @@ end
 itemStorage = loadTable("inventoryArchive.txt")
 
 function invNumToCoords(num)
-  local col = math.ceil(num / 8)
-  local row = math.ceil(col / 42)
-  local rack = (num - 1) % 8
+  col = math.ceil(num / 8)
+  row = math.ceil(col / 42)
+  rack = (num - 1) % 8
   
   if row % 2 ~= 0 then
-    local z = -21 + (4 * ((row - 1)/2))
+    z = -21 + (4 * ((row - 1)/2))
   else
-    local z = -18 + (4 * ((row - 2)/2))
+    z = -18 + (4 * ((row - 2)/2))
   end
   
-  local x = -20 + ((col-1 % 42))
+  x = -20 + ((col-1 % 42))
   
-  local y =  -9 + rack
+  y =  -9 + rack
   
   return x, y, z
 end
 
 function rowFace(num)
-  local col = math.ceil(num / 8)
-  local row = math.ceil(col / 42)
+  col = math.ceil(num / 8)
+  row = math.ceil(col / 42)
   if row % 2 ~= 0 then
     return 3
   else
@@ -65,7 +75,7 @@ function rowFace(num)
 end
 
 function cleanseArray(array)
-  for i=1, table.getn(array) do
+  for i=1, tableLength(array) do
 	if array[i][2] <1 then
 	  array[i][2] = nil
 	  array[i][1] = nil
@@ -75,12 +85,12 @@ function cleanseArray(array)
 end
 
 function pushRelocate(port,itemName) -- starting from HQ, then return!
-  if table.getn(itemStorage) == 7392 then
-    dr(port, "setStatusText('Storage Full!')") -- why are we broadcasting this?
-	return false
+  if tableLength(itemStorage) == 7392 then
+    dr(port, "setStatusText('Storage Full!')")
+    return false
   else
-    for i=1, table.getn(itemStorage)+1 do
-      if (i == table.getn(itemStorage)+1) or (table.getn(itemStorage) == 0) then
+    for i=1, tableLength(itemStorage)+1 do
+      if (i == tableLength(itemStorage)+1) or (tableLength(itemStorage) == 0) then
         itemStorage[i] = {}
         itemStorage[i][1] = itemName
         itemStorage[i][2] = 0
@@ -88,6 +98,7 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
       if itemStorage[i][1] == itemName and itemStorage[i][2] < 262144 then
 		  x,y,z = invNumToCoords(i)
 		  if port == pullPort then x = x-1 z = z-1 end
+		  print("Moving to item Spot :)")
 		  dr(port, "drone.move(0,-2,0)")
 		  dr(port, "drone.move("..x..",0,"..z..")")
 		  dr(port, "drone.move(0,"..y..",0)")
@@ -95,10 +106,12 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 		  invSpot=1
 		  while invSpot <= 8 do
 			dr(port, "drone.select("..invSpot..")")
-			if spaceLeft >= dr(port, "ic.getStackInInternalSlot("..invSpot..").size") then
-			  itemStorage[i][2] = itemStorage[i][2] + dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
-			  spaceLeft = spaceLeft - dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
-			  dr(port, "drone.drop("..rowFace(i)..", ic.getStackInInternalSlot("..invSpot..").size)")
+			payLoad = dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
+			print("payLoad: "..payLoad)
+			if spaceLeft >= payLoad then
+			  itemStorage[i][2] = itemStorage[i][2] + payLoad
+			  spaceLeft = spaceLeft - payLoad
+			  dr(port, "drone.drop("..rowFace(i)..", "..payLoad..")")
 			  invSpot = invSpot + 1
 			else
 			  itemStorage[i][2] = itemStorage[i][2] + spaceLeft
@@ -113,8 +126,10 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 			dr(port, "drone.select("..invSpot..")")
 			dr(port, "drone.drop(1)")
 		  end
+		  print("Emptied Drone :)")
 		  dr(port, "drone.move(-2,0,1)")
 		  dr(port, "drone.move(0,2,0)")
+		  print("Home!")
 		  return true
 	  end
     end
@@ -124,13 +139,13 @@ end
 function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
   quantity = quantityTBD
   while quantityTBD > 0 do
-	for i=1, table.getn(itemStorage) do -- tell bot to move to right spot
+	for i=1, tableLength(itemStorage) do -- tell bot to move to right spot
       if itemStorage[i][1] == itemName and itemStorage[i][2] > 0 then
 	    x,y,z = invNumToCoords(i)
 	    if port == pullPort then x = x-1 z = z-1 end
 	    break
 	  end
-	  if i == table.getn(itemStorage) then
+	  if i == tableLength(itemStorage) then
 	    dr(port, "setStatusText('No such item(s)')")
 		return false
 	  end
@@ -166,13 +181,13 @@ while continue do
   if evt == "key_down" then
 	  if z==113 and r==16 then
 		continue = false
-		print("quitting")
+		print("Quitting!")
 		break
 	  end
 	  if z==13 and r==28 then
 		dr(pullPort, "drone.move(0,2,0)")
 		dr(pushPort, "drone.move(0,2,0)")
-		print("awoke")
+		print("Awoke!")
 	  end
   end
   
@@ -181,7 +196,7 @@ while continue do
 	if string.sub(request, 1, 2) == "s;" then
 	  searchItem = string.sub(request, 3, string.len(request))
 	  local results = {} resultsCount = 1
-	  for i=1, table.getn(itemStorage) do
+	  for i=1, tableLength(itemStorage) do
 		if string.find(itemStorage[i][1], searchItem) ~= nil then
 			results[resultsCount] = {}
 			results[resultsCount][1] = itemStorage[i][1]
@@ -211,24 +226,35 @@ while continue do
   end
 
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
-    foundItem = nil
+    print("Storing Items")
+    foundItemName = nil
     sucks = 0
     slotx = dr(pushPort, "ic.getInventorySize(3)")
-    print(slotx)
-    for slot = slotx, 1, -1 do
-      item = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
-      if foundItem == nil and item ~= nil then
-        foundItem = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
+    for slot = 1, slotx do
+      print("Checking slot "..slot)
+      something = dr(pushPort, "ic.getStackInSlot(3,"..slot..") ~= nil")
+      print(something)
+      if something then
+        itemName = dr(pushPort, "ic.getStackInSlot(3,"..slot..").name")
+        itemMaxDamage = dr(pushPort, "ic.getStackInSlot(3,"..slot..").maxDamage")
+        print(itemName.." "..itemMaxDamage)
+	if foundItemName == nil then
+          foundItemName = itemName
+	  foundItemMaxDamage = itemMaxDamage
+	  print("Found an item: "..foundItemName)
+        end
+	if foundItemName ~= nil and itemMaxDamage == foundItemMaxDamage and itemName == foundItemName then
+	  dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
+	  print("Sucked a stack of the item.")
+          sucks = sucks + 1
+        end
       end
-      if foundItem ~= nil and item.maxDamage == foundItem.maxDamage and item.name == foundItem.name then
-        dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
-        sucks = sucks + 1
+      if (slot == slotx or sucks == 8) and sucks > 0 then
+        print("Storing the stuff!")
+	pushRelocate(pushPort, foundItemName)
+        storageChange = true
+	break
       end
-	  if (slot == 1 or sucks == 8) and dr(pushPort, "ic.getStackInInternalSlot(1)") ~= nil then
-        pushRelocate(pushPort,foundItem.name)
-		storageChange = true
-		break
-	  end
     end
   end
   
@@ -236,7 +262,7 @@ while continue do
     term.clear()
     --render screen according to inventory and display Q as quit option and show when activated
     --also show recent operations! (command)
-    -- also show start button (enter) and show when activated
+    --also show start button (enter) and show when activated
   end
   storageChange = false
   command = false
