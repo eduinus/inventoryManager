@@ -6,7 +6,8 @@ local serial = require("serialization")
 
 function dr(port, cmd)
   modem.broadcast(port, "return "..cmd)
-  return select(6, event.pull(5, "modem_message"))
+  return select(6, event.pull(1, "modem_message"))
+  os.sleep(1)
 end
 
 pushPort = 2412
@@ -213,7 +214,7 @@ while continue do
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
     foundItem = nil
     sucks = 0
-    slotx = dr(2412, "ic.getInventorySize(3)")
+    slotx = dr(pushPort, "ic.getInventorySize(3)")
     print(slotx)
     for slot = slotx, 1, -1 do
       item = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
