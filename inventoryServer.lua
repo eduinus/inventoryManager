@@ -7,7 +7,7 @@ local serial = require("serialization")
 function dr(port, cmd)
   modem.broadcast(port, "return "..cmd)
   ayy = select(6, event.pull(1, "modem_message"))
-  os.sleep(0.1)
+  os.sleep(0.2)
   return ayy
 end
 
