@@ -213,7 +213,7 @@ while continue do
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
     foundItem = nil
     sucks = 0
-    for slot = dr(pushPort, "ic.getInventorySize(3)"), 1, -1 do
+    for slot = tonumber(dr(pushPort, "ic.getInventorySize(3)")), 1, -1 do
       item = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
       if foundItem == nil and item ~= nil then
         foundItem = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
@@ -233,8 +233,8 @@ while continue do
   if storageChange or command then
     term.clear()
     --render screen according to inventory and display Q as quit option and show when activated
-	--also show recent operations! (command)
-	-- also show start button (enter) and show when activated
+    --also show recent operations! (command)
+    -- also show start button (enter) and show when activated
   end
   storageChange = false
   command = false
