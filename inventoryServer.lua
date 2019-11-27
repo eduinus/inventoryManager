@@ -50,17 +50,13 @@ function invNumToCoords(num)
   col = math.ceil(num / 8)
   row = math.ceil(col / 42)
   rack = (num - 1) % 8
-  
   if row % 2 ~= 0 then
     z = -21 + (4 * ((row - 1)/2))
   else
     z = -18 + (4 * ((row - 2)/2))
   end
-  
   x = -20 + ((col-1 % 42))
-  
   y =  -9 + rack
-  
   return x, y, z
 end
 
@@ -77,8 +73,10 @@ end
 function cleanseArray(array)
   for i=1, tableLength(array) do
 	if array[i][2] <1 then
-	  array[i][2] = nil
 	  array[i][1] = nil
+	  array[i][2] = nil
+	  array[i][3] = nil
+	  array[i][4] = nil
 	  array[i] = nil
 	end
   end
@@ -90,7 +88,7 @@ function waitForStop(port)
   end
 end
 
-function pushRelocate(port,itemName) -- starting from HQ, then return!
+function pushRelocate(port,itemName,id,dmg) -- starting from HQ, then return!
   if tableLength(itemStorage) == 7392 then
     dr(port, "setStatusText('Storage Full!')")
     return false
@@ -100,8 +98,10 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
         itemStorage[i] = {}
         itemStorage[i][1] = itemName
         itemStorage[i][2] = 0
+		itemStorage[i][3] = id
+		itemStorage[i][4] = dmg
       end
-      if itemStorage[i][1] == itemName and itemStorage[i][2] < 262144 then
+      if itemStorage[i][3] == id and itemStorage[i][4] == dmg and itemStorage[i][2] < 262144 then
 		  x,y,z = invNumToCoords(i)
 		  print("Coords: "..invNumToCoords(i))
 		  if port == pullPort then x = x-1 z = z-1 end
@@ -114,7 +114,10 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 		  waitForStop(port)
 		  spaceLeft = 262144-itemStorage[i][2]
 		  invSpot=1
-		  while invSpot <= 8 and dr(port, "ic.getStackInInternalSlot("..invSpot..") ~= nil") do
+		  while invSpot <= 8 do
+			if not dr(port, "ic.getStackInInternalSlot("..invSpot..") ~= nil") then
+			  break
+			end
 			dr(port, "drone.select("..invSpot..")")
 			payLoad = dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
 			print("payLoad: "..payLoad)
@@ -251,33 +254,34 @@ while continue do
 
   if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
     print("Storing Items")
-    foundItemName = nil
+    foundItemID = nil
     sucks = 0
     slotx = dr(pushPort, "ic.getInventorySize(3)")
     for slot = 1, slotx do
       print("Checking slot "..slot)
       something = dr(pushPort, "ic.getStackInSlot(3,"..slot..") ~= nil")
-      if not something then break end
       print(something)
       if something then
         itemName = dr(pushPort, "ic.getStackInSlot(3,"..slot..").name")
-        itemMaxDamage = dr(pushPort, "ic.getStackInSlot(3,"..slot..").maxDamage")
-        print(itemName.." "..itemMaxDamage)
-	if foundItemName == nil then
-          foundItemName = itemName
-	  foundItemMaxDamage = itemMaxDamage
+        itemID = dr(pushPort, "ic.getStackInSlot(3,"..slot..").id")
+		itemDmg = dr(pushPort, "ic.getStackInSlot(3,"..slot..").damage")
+        print(itemName..": "..itemID..":"..itemDmg)
+	if foundItemID == nil then
+      foundItemID = itemID
+	  foundItemDmg = itemDmg
+      foundItemName = itemName
 	  print("Found an item: "..foundItemName)
         end
-	if foundItemName ~= nil and itemMaxDamage == foundItemMaxDamage and itemName == foundItemName then
+	if foundItemID ~= nil and foundItemID == itemID and foundItemDmg == itemDmg then
 	  dr(pushPort, "drone.select(1)")
       dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
 	  print("Sucked a stack of the item.")
           sucks = sucks + 1
         end
       end
-      if (slot == slotx or sucks == 8) and sucks > 0 then
+      if (slot == slotx or sucks == 8 or not something) and sucks > 0 then
         print("Storing the stuff!")
-	pushRelocate(pushPort, foundItemName)
+	pushRelocate(pushPort, foundItemName, foundItemID, foundItemDmg)
         storageChange = true
 	break
       end
