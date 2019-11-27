@@ -275,7 +275,7 @@ while continue do
       foundItemLabel = itemLabel
       print("Found an item: "..foundItemName)
         end
-    if foundItemID ~= nil and foundItemID == itemID and foundItemDmg == itemDmg and foundItemLabel = itemLabel then
+    if foundItemID ~= nil and foundItemID == itemID and foundItemDmg == itemDmg and foundItemLabel == itemLabel then
       dr(pushPort, "drone.select(1)")
       dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
       print("Sucked a stack of the item.")
