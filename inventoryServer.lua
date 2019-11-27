@@ -2,12 +2,12 @@ local component = require("component")
 local event = require("event")
 local modem = component.modem
 local term = require("term")
-local serial = require("serialization")
+local serialization = require("serialization")
 
 function dr(port, cmd)
   modem.broadcast(port, "return "..cmd)
   ayy = select(6, event.pull(1, "modem_message"))
-  os.sleep(0.2)
+  os.sleep(0.5)
   return ayy
 end
 
@@ -84,6 +84,12 @@ function cleanseArray(array)
   end
 end
 
+function waitForStop(port)
+  while dr(port, "drone.getVelocity() > 0.1") do
+    os.sleep(0.25)
+  end
+end
+
 function pushRelocate(port,itemName) -- starting from HQ, then return!
   if tableLength(itemStorage) == 7392 then
     dr(port, "setStatusText('Storage Full!')")
@@ -101,14 +107,18 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 		  if port == pullPort then x = x-1 z = z-1 end
 		  print("Moving to item Spot :)")
 		  dr(port, "drone.move(0,-2,0)")
+		  waitForStop(port)
 		  dr(port, "drone.move("..x..",0,"..z..")")
+		  waitForStop(port)
 		  dr(port, "drone.move(0,"..y..",0)")
+		  waitForStop(port)
 		  spaceLeft = 262144-itemStorage[i][2]
 		  invSpot=1
-		  while invSpot <= 8 do
+		  while invSpot <= 8 and dr(port, "ic.getStackInInternalSlot("..invSpot..") ~= nil") do
 			dr(port, "drone.select("..invSpot..")")
 			payLoad = dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
 			print("payLoad: "..payLoad)
+			print(spaceLeft)
 			if spaceLeft >= payLoad then
 			  itemStorage[i][2] = itemStorage[i][2] + payLoad
 			  spaceLeft = spaceLeft - payLoad
@@ -122,14 +132,18 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 		  end
 		  saveTable(itemStorage, "inventoryArchive.txt")
 		  dr(port, "drone.move(0,"..(-1 * y)..",0)")
-		  dr(port, "drone.move("..((-1 * x)+2)..",0,"..((-1 * z)-1)..")")
+		  waitForStop(port)
+		  dr(port, "drone.move("..((-1 * x)+2)..",1,"..((-1 * z)-1)..")")
+		  waitForStop(port)
 		  for invSpot=1, 8 do
 			dr(port, "drone.select("..invSpot..")")
 			dr(port, "drone.drop(1)")
 		  end
 		  print("Emptied Drone :)")
 		  dr(port, "drone.move(-2,0,1)")
-		  dr(port, "drone.move(0,2,0)")
+		  waitForStop(port)
+		  dr(port, "drone.move(0,1,0)")
+		  waitForStop(port)
 		  print("Home!")
 		  return true
 	  end
@@ -152,8 +166,11 @@ function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
 	  end
     end
 	dr(port, "drone.move(0,-2,0)")
+	waitForStop(port)
 	dr(port, "drone.move("..x..",0,"..z..")")
+	waitForStop(port)
 	dr(port, "drone.move(0,"..y..",0)")
+	waitForStop(port)
 	invSpot = 1
 	while invSpot <= 8 and quantityTBD > 0 do
 	  dr(port, "drone.select("..invSpot..")")
@@ -163,13 +180,17 @@ function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
 	  invSpot = invSpot + 1
 	end
 	dr(port, "drone.move(0,"..(-1 * y)..",0)")
+	waitForStop(port)
     dr(port, "drone.move("..((-1 * x)-1)..",0,"..((-1 * z)-2)..")")
+	waitForStop(port)
 	for invSpot = 1, 8 do
 	  dr(port, "drone.select("..invSpot..")")
 	  dr(port, "drone.drop(1)")
 	end
 	dr(port, "drone.move(1,0,2)")
+	waitForStop(port)
 	dr(port, "drone.move(0,2,0)")
+	waitForStop(port)
 	cleanseArray(itemStorage)
 	saveTable(itemStorage, "inventoryArchive.txt")
 	return true
@@ -187,7 +208,9 @@ while continue do
 	  end
 	  if z==13 and r==28 then
 		dr(pullPort, "drone.move(0,2,0)")
+	    waitForStop(port)
 		dr(pushPort, "drone.move(0,2,0)")
+	    waitForStop(port)
 		print("Awoke!")
 	  end
   end
@@ -234,6 +257,7 @@ while continue do
     for slot = 1, slotx do
       print("Checking slot "..slot)
       something = dr(pushPort, "ic.getStackInSlot(3,"..slot..") ~= nil")
+      if not something then break end
       print(something)
       if something then
         itemName = dr(pushPort, "ic.getStackInSlot(3,"..slot..").name")
@@ -245,7 +269,8 @@ while continue do
 	  print("Found an item: "..foundItemName)
         end
 	if foundItemName ~= nil and itemMaxDamage == foundItemMaxDamage and itemName == foundItemName then
-	  dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
+	  dr(pushPort, "drone.select(1)")
+      dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
 	  print("Sucked a stack of the item.")
           sucks = sucks + 1
         end
