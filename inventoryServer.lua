@@ -77,6 +77,7 @@ function cleanseArray(array)
 	  array[i][2] = nil
 	  array[i][3] = nil
 	  array[i][4] = nil
+	  array[i][5] = nil
 	  array[i] = nil
 	end
   end
@@ -88,7 +89,7 @@ function waitForStop(port)
   end
 end
 
-function pushRelocate(port,itemName,id,dmg) -- starting from HQ, then return!
+function pushRelocate(port,itemName,id,dmg,label) -- starting from HQ, then return!
   if tableLength(itemStorage) == 7392 then
     dr(port, "setStatusText('Storage Full!')")
     return false
@@ -98,58 +99,59 @@ function pushRelocate(port,itemName,id,dmg) -- starting from HQ, then return!
         itemStorage[i] = {}
         itemStorage[i][1] = itemName
         itemStorage[i][2] = 0
-		itemStorage[i][3] = id
-		itemStorage[i][4] = dmg
+	itemStorage[i][3] = id
+	itemStorage[i][4] = dmg
+	itemStorage[i][5] = label
       end
       if itemStorage[i][3] == id and itemStorage[i][4] == dmg and itemStorage[i][2] < 262144 then
-		  x,y,z = invNumToCoords(i)
-		  print("Coords: "..invNumToCoords(i))
-		  if port == pullPort then x = x-1 z = z-1 end
-		  print("Moving to item Spot :)")
-		  dr(port, "drone.move(0,-2,0)")
-		  waitForStop(port)
-		  dr(port, "drone.move("..x..",0,"..z..")")
-		  waitForStop(port)
-		  dr(port, "drone.move(0,"..y..",0)")
-		  waitForStop(port)
-		  spaceLeft = 262144-itemStorage[i][2]
-		  invSpot=1
-		  while invSpot <= 8 do
-			if not dr(port, "ic.getStackInInternalSlot("..invSpot..") ~= nil") then
-			  break
-			end
-			dr(port, "drone.select("..invSpot..")")
-			payLoad = dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
-			print("payLoad: "..payLoad)
-			print(spaceLeft)
-			if spaceLeft >= payLoad then
-			  itemStorage[i][2] = itemStorage[i][2] + payLoad
-			  spaceLeft = spaceLeft - payLoad
-			  dr(port, "drone.drop("..rowFace(i)..", "..payLoad..")")
-			  invSpot = invSpot + 1
-			else
-			  itemStorage[i][2] = itemStorage[i][2] + spaceLeft
-			  dr(port, "drone.drop("..rowFace(i)..", "..spaceLeft..")")
-			  spaceLeft = spaceLeft - spaceLeft
-			end
-		  end
-		  saveTable(itemStorage, "inventoryArchive.txt")
-		  dr(port, "drone.move(0,"..(-1 * y)..",0)")
-		  waitForStop(port)
-		  dr(port, "drone.move("..((-1 * x)+2)..",1,"..((-1 * z)-1)..")")
-		  waitForStop(port)
-		  for invSpot=1, 8 do
-			dr(port, "drone.select("..invSpot..")")
-			dr(port, "drone.drop(1)")
-		  end
-		  print("Emptied Drone :)")
-		  dr(port, "drone.move(-2,0,1)")
-		  waitForStop(port)
-		  dr(port, "drone.move(0,1,0)")
-		  waitForStop(port)
-		  print("Home!")
-		  return true
+        x,y,z = invNumToCoords(i)
+	print("Coords: "..invNumToCoords(i))
+	if port == pullPort then x = x-1 z = z-1 end
+	print("Moving to item Spot :)")
+	dr(port, "drone.move(0,-2,0)")
+	waitForStop(port)
+	dr(port, "drone.move("..x..",0,"..z..")")
+	waitForStop(port)
+	dr(port, "drone.move(0,"..y..",0)")
+	waitForStop(port)
+	spaceLeft = 262144-itemStorage[i][2]
+	invSpot=1
+	while invSpot <= 8 do
+	  if not dr(port, "ic.getStackInInternalSlot("..invSpot..") ~= nil") then
+	    break
 	  end
+	  dr(port, "drone.select("..invSpot..")")
+	  payLoad = dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
+	  print("payLoad: "..payLoad)
+	  print(spaceLeft)
+	  if spaceLeft >= payLoad then
+	    itemStorage[i][2] = itemStorage[i][2] + payLoad
+	    spaceLeft = spaceLeft - payLoad
+	    dr(port, "drone.drop("..rowFace(i)..", "..payLoad..")")
+	    invSpot = invSpot + 1
+	  else
+	    itemStorage[i][2] = itemStorage[i][2] + spaceLeft
+	    dr(port, "drone.drop("..rowFace(i)..", "..spaceLeft..")")
+	    spaceLeft = spaceLeft - spaceLeft
+	  end
+	end
+	saveTable(itemStorage, "inventoryArchive.txt")
+	dr(port, "drone.move(0,"..(-1 * y)..",0)")
+	waitForStop(port)
+	dr(port, "drone.move("..((-1 * x)+2)..",1,"..((-1 * z)-1)..")")
+	waitForStop(port)
+	for invSpot=1, 8 do
+	  dr(port, "drone.select("..invSpot..")")
+	  dr(port, "drone.drop(1)")
+	end
+	print("Emptied Drone :)")
+	dr(port, "drone.move(-2,0,1)")
+	waitForStop(port)
+	dr(port, "drone.move(0,1,0)")
+	waitForStop(port)
+	print("Home!")
+	return true
+      end
     end
   end
 end
@@ -157,46 +159,46 @@ end
 function pullRelocate(port,itemName,quantity) -- starting from HQ, then return!
   quantity = quantityTBD
   while quantityTBD > 0 do
-	for i=1, tableLength(itemStorage) do -- tell bot to move to right spot
+    for i=1, tableLength(itemStorage) do -- tell bot to move to right spot
       if itemStorage[i][1] == itemName and itemStorage[i][2] > 0 then
-	    x,y,z = invNumToCoords(i)
-	    if port == pullPort then x = x-1 z = z-1 end
-	    break
-	  end
-	  if i == tableLength(itemStorage) then
-	    dr(port, "setStatusText('No such item(s)')")
-		return false
-	  end
+        x,y,z = invNumToCoords(i)
+	if port == pullPort then x = x-1 z = z-1 end
+	break
+      end
+      if i == tableLength(itemStorage) then
+        dr(port, "setStatusText('No such item(s)')")
+        return false
+      end
     end
-	dr(port, "drone.move(0,-2,0)")
-	waitForStop(port)
-	dr(port, "drone.move("..x..",0,"..z..")")
-	waitForStop(port)
-	dr(port, "drone.move(0,"..y..",0)")
-	waitForStop(port)
-	invSpot = 1
-	while invSpot <= 8 and quantityTBD > 0 do
-	  dr(port, "drone.select("..invSpot..")")
-	  dr(port, "drone.suck("..rowFace(i)..", "..quantityTBD..")")
-	  quantityTBD = quantityTBD - dr(port, "ic.getStackInInternalSlot().size")
-	  itemStorage[i][2] = itemStorage[i][2] - dr(port, "ic.getStackInInternalSlot().size")
-	  invSpot = invSpot + 1
-	end
-	dr(port, "drone.move(0,"..(-1 * y)..",0)")
-	waitForStop(port)
+    dr(port, "drone.move(0,-2,0)")
+    waitForStop(port)
+    dr(port, "drone.move("..x..",0,"..z..")")
+    waitForStop(port)
+    dr(port, "drone.move(0,"..y..",0)")
+    waitForStop(port)
+    invSpot = 1
+    while invSpot <= 8 and quantityTBD > 0 do
+      dr(port, "drone.select("..invSpot..")")
+      dr(port, "drone.suck("..rowFace(i)..", "..quantityTBD..")")
+      quantityTBD = quantityTBD - dr(port, "ic.getStackInInternalSlot().size")
+      itemStorage[i][2] = itemStorage[i][2] - dr(port, "ic.getStackInInternalSlot().size")
+      invSpot = invSpot + 1
+    end
+    dr(port, "drone.move(0,"..(-1 * y)..",0)")
+    waitForStop(port)
     dr(port, "drone.move("..((-1 * x)-1)..",0,"..((-1 * z)-2)..")")
-	waitForStop(port)
-	for invSpot = 1, 8 do
-	  dr(port, "drone.select("..invSpot..")")
-	  dr(port, "drone.drop(1)")
-	end
-	dr(port, "drone.move(1,0,2)")
-	waitForStop(port)
-	dr(port, "drone.move(0,2,0)")
-	waitForStop(port)
-	cleanseArray(itemStorage)
-	saveTable(itemStorage, "inventoryArchive.txt")
-	return true
+    waitForStop(port)
+    for invSpot = 1, 8 do
+      dr(port, "drone.select("..invSpot..")")
+      dr(port, "drone.drop(1)")
+    end
+    dr(port, "drone.move(1,0,2)")
+    waitForStop(port)
+    dr(port, "drone.move(0,2,0)")
+    waitForStop(port)
+    cleanseArray(itemStorage)
+    saveTable(itemStorage, "inventoryArchive.txt")
+    return true
   end	
 end
 
@@ -204,18 +206,18 @@ continue = true
 while continue do
   evt,y,z,r,e,request = event.pull(1)
   if evt == "key_down" then
-	  if z==113 and r==16 then
-		continue = false
-		print("Quitting!")
-		break
-	  end
-	  if z==13 and r==28 then
-		dr(pullPort, "drone.move(0,2,0)")
-	    waitForStop(port)
-		dr(pushPort, "drone.move(0,2,0)")
-	    waitForStop(port)
-		print("Awoke!")
-	  end
+    if z==113 and r==16 then
+      continue = false
+      print("Quitting!")
+      break
+    end
+    if z==13 and r==28 then
+      dr(pullPort, "drone.move(0,2,0)")
+      waitForStop(port)
+      dr(pushPort, "drone.move(0,2,0)")
+      waitForStop(port)
+      print("Awoke!")
+    end
   end
   
   if evt=="modem_message" then
@@ -262,14 +264,14 @@ while continue do
       something = dr(pushPort, "ic.getStackInSlot(3,"..slot..") ~= nil")
       print(something)
       if something then
-        itemName = dr(pushPort, "ic.getStackInSlot(3,"..slot..").name")
         itemID = dr(pushPort, "ic.getStackInSlot(3,"..slot..").id")
-		itemDmg = dr(pushPort, "ic.getStackInSlot(3,"..slot..").damage")
-        print(itemName..": "..itemID..":"..itemDmg)
+	itemDmg = dr(pushPort, "ic.getStackInSlot(3,"..slot..").damage")
+        print(itemID..":"..itemDmg)
 	if foundItemID == nil then
-      foundItemID = itemID
+          foundItemID = itemID
 	  foundItemDmg = itemDmg
-      foundItemName = itemName
+          foundItemName = dr(pushPort, "ic.getStackInSlot(3,"..slot..").name")
+	  foundItemLabel = dr(pushPort, "ic.getStackInSlot(3,"..slot..").label")
 	  print("Found an item: "..foundItemName)
         end
 	if foundItemID ~= nil and foundItemID == itemID and foundItemDmg == itemDmg then
@@ -281,7 +283,7 @@ while continue do
       end
       if (slot == slotx or sucks == 8 or not something) and sucks > 0 then
         print("Storing the stuff!")
-	pushRelocate(pushPort, foundItemName, foundItemID, foundItemDmg)
+	pushRelocate(pushPort, foundItemName, foundItemID, foundItemDmg,foundItemLabel)
         storageChange = true
 	break
       end
