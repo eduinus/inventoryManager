@@ -76,7 +76,7 @@ end
 
 function pushRelocate(port,itemName) -- starting from HQ, then return!
   if table.getn(itemStorage) == 7392 then
-    dr(port, "setStatusText('Storage Full!')")
+    dr(port, "setStatusText('Storage Full!')") -- why are we broadcasting this?
 	return false
   else
     for i=1, table.getn(itemStorage)+1 do
@@ -85,7 +85,7 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
         itemStorage[i][1] = itemName
         itemStorage[i][2] = 0
       end
-      if (itemStorage[i][1] == itemName and itemStorage[i][2] < 262144) or table.getn(itemStorage) == 0 then
+      if itemStorage[i][1] == itemName and itemStorage[i][2] < 262144 then
 		  x,y,z = invNumToCoords(i)
 		  if port == pullPort then x = x-1 z = z-1 end
 		  dr(port, "drone.move(0,-2,0)")
@@ -95,10 +95,10 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
 		  invSpot=1
 		  while invSpot <= 8 do
 			dr(port, "drone.select("..invSpot..")")
-			if spaceLeft>= dr(port, "ic.getStackInInternalSlot("..invSpot..").size") then
+			if spaceLeft >= dr(port, "ic.getStackInInternalSlot("..invSpot..").size") then
 			  itemStorage[i][2] = itemStorage[i][2] + dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
 			  spaceLeft = spaceLeft - dr(port, "ic.getStackInInternalSlot("..invSpot..").size")
-			  dr(port, "drone.drop("..rowFace(i)..", ic.getStackInInternalSlot("..invSpot..").size")
+			  dr(port, "drone.drop("..rowFace(i)..", ic.getStackInInternalSlot("..invSpot..").size)")
 			  invSpot = invSpot + 1
 			else
 			  itemStorage[i][2] = itemStorage[i][2] + spaceLeft
@@ -162,49 +162,20 @@ end
 
 continue = true
 while continue do
-  x,y,z,r,e = event.pull(1, "key_down")
-  if z==113 and r==16 and e=="Eduinus" then
-    continue = false
-    print("quitting")
-  end
-  
-  x,y,z,r,e = event.pull(1, "key_down")
-  if z==13 and r==28 and e=="Eduinus" then
-    dr(pullPort, "drone.move(0,2,0)")
-    dr(pushPort, "drone.move(0,2,0)")
-    print("awoke")
-  end
-
-  if storageChange or command then
-    term.clear()
-    --render screen according to inventory and display Q as quit option and show when activated
-	--also show recent operations!
-	-- also show start button (enter) and show when activated
-  end
-  storageChange = false
-  command = false
-
-  if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- drone need to charge?
-    foundItem = nil
-    sucks = 0
-    for slot = dr(pushPort, "ic.getInventorySize(3)"), 1, -1 do
-      item = dr(pushPort, "ic.getStackInSlot(3,slot)")
-      if foundItem == nil and item ~= nil then
-        foundItem = dr(pushPort, "ic.getStackInSlot(3,slot)")
-      end
-      if foundItem ~= nil and item.maxDamage == foundItem.maxDamage and item.name == foundItem.name then
-        dr(pushPort, "ic.suckFromSlot(3,slot)")
-        sucks = sucks + 1
-      end
-	  if (slot == 1 or sucks == 8) and dr(pushPort, "ic.getStackInInternalSlot(1)") ~= nil then
-        pushRelocate(pushPort,itemName)
-		storageChange = true
+  evt,y,z,r,e,request = event.pull(1)
+  if evt == "key_down" then
+	  if z==113 and r==16 then
+		continue = false
+		print("quitting")
 		break
 	  end
-    end
+	  if z==13 and r==28 then
+		dr(pullPort, "drone.move(0,2,0)")
+		dr(pushPort, "drone.move(0,2,0)")
+		print("awoke")
+	  end
   end
   
-  evt,_,_,_,_,request=event.pull()
   if evt=="modem_message" then
 	if string.sub(request, 1, 2) == "s;" then
 	  searchItem = string.sub(request, 3, string.len(request))
@@ -236,4 +207,33 @@ while continue do
 	  storageChange = true
 	end
   end
+
+  if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
+    foundItem = nil
+    sucks = 0
+    for slot = dr(pushPort, "ic.getInventorySize(3)"), 1, -1 do
+      item = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
+      if foundItem == nil and item ~= nil then
+        foundItem = dr(pushPort, "ic.getStackInSlot(3,"..slot..")")
+      end
+      if foundItem ~= nil and item.maxDamage == foundItem.maxDamage and item.name == foundItem.name then
+        dr(pushPort, "ic.suckFromSlot(3,"..slot..")")
+        sucks = sucks + 1
+      end
+	  if (slot == 1 or sucks == 8) and dr(pushPort, "ic.getStackInInternalSlot(1)") ~= nil then
+        pushRelocate(pushPort,foundItem.name)
+		storageChange = true
+		break
+	  end
+    end
+  end
+  
+  if storageChange or command then
+    term.clear()
+    --render screen according to inventory and display Q as quit option and show when activated
+	--also show recent operations! (command)
+	-- also show start button (enter) and show when activated
+  end
+  storageChange = false
+  command = false
 end
