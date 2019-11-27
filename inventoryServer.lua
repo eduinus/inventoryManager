@@ -97,6 +97,7 @@ function pushRelocate(port,itemName) -- starting from HQ, then return!
       end
       if itemStorage[i][1] == itemName and itemStorage[i][2] < 262144 then
 		  x,y,z = invNumToCoords(i)
+		  print("Coords: "..invNumToCoords(i))
 		  if port == pullPort then x = x-1 z = z-1 end
 		  print("Moving to item Spot :)")
 		  dr(port, "drone.move(0,-2,0)")
