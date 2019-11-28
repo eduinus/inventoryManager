@@ -7,7 +7,7 @@ local serialization = require("serialization")
 function dr(port, cmd)
   modem.broadcast(port, "return "..cmd)
   ayy = select(6, event.pull(1, "modem_message"))
-  os.sleep(0.5)
+  os.sleep(0.25)
   return ayy
 end
  
@@ -239,8 +239,12 @@ while continue do
     end
     end
   end
- 
-  if dr(pushPort, "computer.maxEnergy()*0.1 < computer.energy()") then -- if drone doesn't need to charge...
+  
+  needToCharge = dr(pushPort, "computer.maxEnergy()*0.25 > computer.energy()")
+  
+  if needToCharge then -- if drone doesn't need to charge...
+    os.sleep(10)
+  else
     print("Storing Items")
     foundItemID = nil
     sucks = 0
