@@ -85,7 +85,7 @@ end
  
 function waitForStop(port)
   while dr(port, "drone.getVelocity() > 0.1") do
-    os.sleep(2)
+    os.sleep(3)
   end
 end
  
@@ -240,10 +240,12 @@ while continue do
     end
   end
   
-  needToCharge = dr(pushPort, "computer.maxEnergy()*0.25 > computer.energy()")
+  needToCharge = dr(pushPort, "computer.maxEnergy()*0.9 > computer.energy()")
   
   if needToCharge then -- if drone doesn't need to charge...
-    os.sleep(10)
+    while dr(pushPort, "computer.maxEnergy()*0.95 > computer.energy()") do
+      os.sleep(10)
+    end
   else
     print("Storing Items")
     foundItemID = nil
