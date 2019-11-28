@@ -85,7 +85,7 @@ end
  
 function waitForStop(port)
   while dr(port, "drone.getVelocity() > 0.1") do
-    os.sleep(3)
+    os.sleep(1)
   end
 end
  
