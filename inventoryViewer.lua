@@ -1,2 +1,0 @@
--speak w/ server to give player details of inventory
--ask pull drone for items
