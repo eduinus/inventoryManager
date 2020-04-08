@@ -1,2 +1,2 @@
 # inventoryManager
-this program suite uses drones to store, organize, index and recall items in mass quantities
+Interfaces with a single inventory interface to serve remote and local item requests as well as place items in storage
