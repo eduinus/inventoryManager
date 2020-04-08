@@ -10,3 +10,5 @@ local term = require("term")
 - render item inventory graphically when not in use
 - also render recent inventory changes
 - button for quitting
+
+Network setup: linked network cards in server rack, ran with network card to server
