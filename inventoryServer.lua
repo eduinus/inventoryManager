@@ -292,3 +292,6 @@ while continue do
   storageChange = false
   command = false
 end
+
+-speak w/ server to give player details of inventory
+-ask pull drone for items
