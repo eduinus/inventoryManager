@@ -1,1 +1,3 @@
--- picks up on robot or remote item requests
+-- picks up on robot or remote item requests / searches
+-- stores these queries in array (deletes duplicative requests)
+-- passes them to server on request
