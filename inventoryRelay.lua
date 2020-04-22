@@ -19,7 +19,9 @@ function tableLength(table) -- presumes table index begins at 1
 end
 
 local id, localNetworkCard, remoteAddress, port, distance, payload = event.pull("modem_message")
-  
+  -- handle genSearch
+  -- handle specSearch
+  -- handle requests
 end
 
 -- picks up on robot or remote item requests / searches
