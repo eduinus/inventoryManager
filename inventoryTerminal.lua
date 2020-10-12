@@ -1,6 +1,5 @@
 local component = require("component")
 local modem = component.modem
-local transposer = component.transposer
 local event = require("event")
 local term = require("term")
 local sides = require("sides")
@@ -8,62 +7,9 @@ local serialization = require("serialization")
 local keyboard = require("keyboard")
 
 -- BEGIN CONFIG
-local storageSide = sides.down
-
-modem.open(54978) --  ports to all relays should go here - max port is 65535
--- END CONFIG
-
-function tableLength(table) -- this presumes table index begins at 1
-  count = 0
-  while table[count + 1] ~= nil do
-    count = count + 1
-  end
-  return count
-end
-
-function genSearch(searchTerm)
-  -- searches for an item based on generic searchTerm
-  -- returns a table of matching items with their location, and all of their information per ocdoc.cil.li/component:inventory_controller
-  local searchResults = {}
-  local count = 0
-  for i = 1, transposer.getInventorySize(storageSide) do
-    local item = transposer.getStackInSlot(storageSide, i)
-    if item then
-      if string.find(item.name .. "^" .. item.label .. "^" .. item.id .. "^", searchTerm) then -- n.b. string.lower(myString) fix for later
-        count = count + 1
-        searchResults[count] = item -- add item to searchResults table
-        searchResults[count][-1] = i -- add location of item to -1th column in table
-      end
-    end
-  end
-  return searchResults
-end
-
-function specSearch(damage, maxDamage, size, maxSize, id, name, label, hasTag)
-  -- searches for an item based on provided categories
-  -- returns a table of matching items with their location, and all of their information per ocdoc.cil.li/component:inventory_controller
-  if damage == nil and maxDamage == nil and size == nil and maxSize == nil and id == nil and name == nil and label == nil and hasTag == nil then return false end
-  local searchResults = {}
-  local count = 0
-  for i = 1, transposer.getInventorySize(storageSide) do
-    local item = transposer.getStackInSlot(storageSide, i)
-    if item then
-      if  (damage == nil or string.find(item.damage, damage)) and  -- n.b. string.lower(myString) fix for later
-          (maxDamage == nil or string.find(item.maxDamage, maxDamage)) and  -- n.b. string.lower(myString) fix for later
-          (size == nil or string.find(item.size, size)) and  -- n.b. string.lower(myString) fix for later
-          (maxSize == nil or string.find(item.maxSize, maxSize)) and  -- n.b. string.lower(myString) fix for later
-          (id == nil or string.find(item.id, id)) and  -- n.b. string.lower(myString) fix for later
-          (name == nil or string.find(item.name, name)) and  -- n.b. string.lower(myString) fix for later
-          (label == nil or string.find(item.label, label)) and  -- n.b. string.lower(myString) fix for later
-          (hasTag == nil or string.find(item.hasTag, hasTag)) then  -- n.b. string.lower(myString) fix for later
-        count = count + 1
-        searchResults[count] = item -- add item to searchResults table
-        searchResults[count][-1] = i -- add location of item to -1th column in table
-      end
-    end
-  end
-  return searchResults
-end
+local localChest = sides.up
+local remoteChest = sides.front
+local bufferChest = sides.back
 
 while true do -- MAIN LOOP
   local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple("interrupted", "modem_message", "key_down")

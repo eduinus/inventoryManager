@@ -9,8 +9,6 @@ modem.open(54978) -- ports to robots etc. go here - max port is 65535
 -- modem.open()
 -- modem.open()
 
-
-
 -- END CONFIG
 
 function tableLength(table) -- presumes table index begins at 1
