@@ -8,9 +8,9 @@ local serialization = require("serialization")
 local keyboard = require("keyboard")
 
 -- BEGIN CONFIG
-local transceiver = sides.front
-local outgoingChest = sides.left
-local incomingChest = sides.right
+local transceiver = sides.bottom
+local outgoingChest = sides.top
+local incomingChest = sides.back
 
 -- PORT:
 inventoryTerminalPort = 54978
@@ -27,18 +27,19 @@ function tableLength(table)
   return count
 end
 
+print("TERMINAL STARTED:")
+
 while true do -- MAIN LOOP
   local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple(10, "interrupted", "key_down")
   -- for key_down: id, keyboardAddress, char, code, playerName
   -- for interrupted: id, ...
-  print("EVENT PULLED:")
 
   if id == "interrupted" then -- this means you pressed ctrl + c
     print("-> soft interrupt, closing")
     break
 
   elseif (id == "key_down") and (arg3 == keyboard.keys.enter) then -- do an item query or request
-    print("-> item query:")
+    print("-> Item Query")
     loop = true
     while loop do
       print("-> Enter Item name:")
