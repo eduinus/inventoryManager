@@ -28,22 +28,21 @@ function tableLength(table)
 end
 
 while true do -- MAIN LOOP
+  os.execute("clear")
+  print("Search for Item (Enter) or Quit (Q):")
+
   local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple(10, "interrupted", "key_down")
   -- for key_down: id, keyboardAddress, char, code, playerName
   -- for interrupted: id, ...
-
-  os.execute("clear")
-  print("Search for Item (Enter) or Quit (Q):")
 
   if id == "interrupted" then -- this means you pressed ctrl + c
     print("-> soft interrupt, closing")
     break
 
   elseif (id == "key_down") and (arg3 == keyboard.keys.enter) then -- do an item query or request
-    print("-> Item Query")
     loop = true
     while loop do
-      print("-> Enter Item name:")
+      print("-> Enter Item query:")
       local userInput = io.read()
       payLoadArray = {}
       payLoadArray[1] = "genSearch"
