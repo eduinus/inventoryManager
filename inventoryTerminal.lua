@@ -27,12 +27,13 @@ function tableLength(table)
   return count
 end
 
-print("TERMINAL STARTED:")
-
 while true do -- MAIN LOOP
   local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple(10, "interrupted", "key_down")
   -- for key_down: id, keyboardAddress, char, code, playerName
   -- for interrupted: id, ...
+
+  os.execute("clear")
+  print("Search for Item (Enter) or Quit (Q):")
 
   if id == "interrupted" then -- this means you pressed ctrl + c
     print("-> soft interrupt, closing")
