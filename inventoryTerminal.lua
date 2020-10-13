@@ -1,5 +1,6 @@
 local component = require("component")
 local modem = component.modem
+local transposer = component.transposer
 local event = require("event")
 local term = require("term")
 local sides = require("sides")
