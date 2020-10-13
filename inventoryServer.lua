@@ -8,8 +8,8 @@ local serialization = require("serialization")
 local keyboard = require("keyboard")
 
 -- BEGIN CONFIG
-local storageSide = sides.right
-local transceiver = sides.front
+local storageSide = sides.front
+local transceiver = sides.top
 
 -- PORTS: (max port is 65535)
 inventoryTerminalPort = 54978
