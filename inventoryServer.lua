@@ -153,7 +153,7 @@ while true do -- MAIN LOOP
 
   elseif (id == "key_down") and (arg3 == keyboard.keys.q) then -- this means we are closing
     print("-> closing program")
-    sleep(0.5)
+    os.sleep(0.5)
     break
   end
 
