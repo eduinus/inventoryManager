@@ -9,9 +9,14 @@ local keyboard = require("keyboard")
 
 -- BEGIN CONFIG
 local storageSide = sides.down
+local transceiver = sides.front
 
-modem.open(54978) --  ports to all relays should go here - max port is 65535
+-- PORTS: (max port is 65535)
+inventoryTerminalPort = 54978
+
 -- END CONFIG
+
+modem.open(inventoryTerminalPort)
 
 function tableLength(table) -- this presumes table index begins at 1
   count = 0
@@ -42,7 +47,9 @@ end
 function specSearch(damage, maxDamage, size, maxSize, id, name, label, hasTag)
   -- searches for an item based on provided categories
   -- returns a table of matching items with their location, and all of their information per ocdoc.cil.li/component:inventory_controller
-  if damage == nil and maxDamage == nil and size == nil and maxSize == nil and id == nil and name == nil and label == nil and hasTag == nil then return false end
+  if damage == nil and maxDamage == nil and size == nil and maxSize == nil and id == nil and name == nil and label == nil and hasTag == nil then
+    return false
+  end
   local searchResults = {}
   local count = 0
   for i = 1, transposer.getInventorySize(storageSide) do
@@ -66,7 +73,7 @@ function specSearch(damage, maxDamage, size, maxSize, id, name, label, hasTag)
 end
 
 while true do -- MAIN LOOP
-  local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple("interrupted", "modem_message", "key_down")
+  local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple(10, "interrupted", "modem_message", "key_down")
   -- for modem_message: id, localNetworkCard, remoteAddress, port, distance, payload
   -- for key_down: id, keyboardAddress, char, code, playerName
   -- for interrupted: id, ...
@@ -81,29 +88,39 @@ while true do -- MAIN LOOP
     remoteAddress = arg2
     port = arg3
     payLoad = serialization.unserialize(arg5)
+
+    -- GENERAL SEARCH
+
     if payLoad[1] == "genSearch" then -- serve remote item search requests
       modem.send(remoteAddress, port, serialization.serialize(genSearch(payLoad[2])))
       print("--> genSearch served")
+
+    -- SPECIFIC SEARCH
+
     elseif payLoad[1] == "specSearch" then -- serve remote specific item search requests
       modem.send(remoteAddress, port, serialization.serialize(specSearch(payLoad[2], payLoad[3], payLoad[4], payLoad[5], payLoad[6], payLoad[7], payLoad[8], payLoad[9])))
       print("--> specSearch served")
+
+    -- ITEM REQUEST
+
     elseif payLoad[1] == "request" then -- serve remote item requests, but hold program until items taken for X time, if not taken, put back in storage.
-      print("--> serving request")
+      print("--> serving item request")
       requestedItem = specSearch(payLoad[2], payLoad[3], payLoad[4], payLoad[5], payLoad[6], payLoad[7], payLoad[8], payLoad[9])
       if tableLength(requestedItem) == 1 then
-        transposer.transferItem(storageSide, remoteChest, payLoad[10], requestedItem[1][-1], 1)
+        transposer.transferItem(storageSide, transceiver, payLoad[10], requestedItem[1][-1], 1) -- payLoad[10] is quantity requested, requestedItem[1][-1] is storage location.
+        modem.send(remoteAddress, port, "done")
         print("---> sent requested item")
         for i=1, 10 do
-          if transposer.getStackInSlot(remoteChest, 1) ~= nil then
+          if transposer.getStackInSlot(transceiver, 1) ~= nil then
             os.sleep(1)
+          else
+            break
           end
         end
-        if transposer.getStackInSlot(remoteChest, 1) ~= nil then
-          modem.send(remoteAddress, port, "noGrab")
-          transposer.transferItem(remoteChest, storageSide, payLoad[10], 1, requestedItem[1][-1])
+        if transposer.getStackInSlot(transceiver, 1) ~= nil then
+          transposer.transferItem(transceiver, storageSide, payLoad[10], 1, requestedItem[1][-1]) -- payLoad[10] is quantity requested, requestedItem[1][-1] is storage location.
           print("---> requested item not accepted")
         end
-        modem.send(remoteAddress, port, "done")
       elseif tableLength(requestedItem) > 1 then
         modem.send(remoteAddress, port, "moreThanOneSuchItem")
         print("---> more than one item matches request")
@@ -111,37 +128,24 @@ while true do -- MAIN LOOP
         modem.send(remoteAddress, port, "noSuchItem")
         print("---> no item matches request")
       end
-    end
 
-  elseif (id == "key_down") and (arg3 == keyboard.keys.enter) then -- this means we have some sort of local query
-    print("-> local query / request")
-    loop = true
-    while loop do
-      print("Enter Item name:")
-      local userInput = io.read()
-      local resultsTable = genSearch(userInput)
-      if tableLength(resultsTable) == 0 then
-        print("No results.")
-      else
-        print("damage---------maxDamage------size-----------maxSize--------id-------------name-----------label----------hasTag---------location-------quantity-------")
-        for i=1, tableLength(resultsTable) do
-          for o=1, 8 do
-            print(resultsTable[i][o])
-            for e=1, (15 - string.len(resultsTable[i][o])) do io.write(" ") end
-          end
-          print(resultsTable[i][-1])
-          for e=1, (15 - string.len(resultsTable[i][-1])) do io.write(" ") end
-          print(resultsTable[i].size)
-          for e=1, (15 - string.len(resultsTable[i].size)) do io.write(" ") end
+    -- SPECIFIC ITEM REQUEST
+
+    elseif payLoad[1] == "specRequest" then -- requests where robot or terminal already knows the location of the item it wants
+      print("--> serving specific item request")
+      transposer.transferItem(storageSide, transceiver, payLoad[10], payLoad[-1], 1) -- payLoad[10] is quantity requested, requestedItem[-1] is storage location.
+      modem.send(remoteAddress, port, "done")
+      print("---> sent requested item")
+      for i=1, 10 do
+        if transposer.getStackInSlot(transceiver, 1) ~= nil then
+          os.sleep(1)
+        else
+          break
         end
-        print("Request? (enter location #) or Search Again? (S)")
-        local itemLocation = io.read()
-        if itemLocation ~= "S" and itemLocation ~= "s" then
-          print("Quantity?")
-          local itemQuantity = io.read()
-          transposer.transferItem(storageSide, localChest, itemQuantity, itemLocation, 1)
-          loop = false
-        end
+      end
+      if transposer.getStackInSlot(transceiver, 1) ~= nil then
+        transposer.transferItem(transceiver, storageSide, payLoad[10], 1, payLoad[-1]) -- payLoad[10] is quantity requested, requestedItem[-1] is storage location.
+        print("---> requested item not accepted")
       end
     end
 
@@ -151,16 +155,16 @@ while true do -- MAIN LOOP
     break
   end
 
-  for i=1, transposer.getInventorySize(bufferChest) do -- now store any items in buffer chest
-    if transposer.getStackInSlot(bufferChest, i) ~= nil then
-      transposer.transferItem(bufferChest, storageSide, 999, i)
-      print("-> stored items from bufferChest")
+  for i=9, transposer.getInventorySize(transceiver) do -- now store any trash items in the transceiver
+    if transposer.getStackInSlot(transceiver, i) ~= nil then
+      transposer.transferItem(transceiver, storageSide, 999, i)
+      print("-> stored items from transceiver")
     else
       break
     end
   end
 
-  -- render item inventory graphically when not in use if you stored items from buffer chest OR if items were removed from buffer chest
+  -- re-render item inventory graphically if there was a succesful item request or item storage
   -- note recent inventory changes
 
 end
