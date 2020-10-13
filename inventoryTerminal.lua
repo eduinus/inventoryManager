@@ -57,11 +57,13 @@ while true do -- MAIN LOOP
         local resultsTable = serialization.unserialize(arg5)
       else
         print("-> No response!")
+        os.sleep(1)
         loop = false
         break
       end
       if tableLength(resultsTable) == 0 then
         print("No results.")
+        os.sleep(1)
       else -- searchResults are >= 1, so we're printing the results
 
         print("damage---------maxDamage------size-----------maxSize--------id-------------name-----------label----------hasTag---------location-------quantity-------")
@@ -106,6 +108,7 @@ while true do -- MAIN LOOP
             print("--> Item received.")
           else
             print("--> No response!")
+            os.sleep(1)
             loop = false
             break
           end
