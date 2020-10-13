@@ -13,10 +13,12 @@ local transceiver = sides.front
 
 -- PORTS: (max port is 65535)
 inventoryTerminalPort = 54978
+inventoryRelayOne = 54979
 
 -- END CONFIG
 
 modem.open(inventoryTerminalPort)
+modem.open(inventoryRelayOne)
 
 function tableLength(table) -- this presumes table index begins at 1
   count = 0

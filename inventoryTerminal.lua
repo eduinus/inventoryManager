@@ -60,6 +60,7 @@ while true do -- MAIN LOOP
       if tableLength(resultsTable) == 0 then
         print("No results.")
       else -- searchResults are >= 1, so we're printing the results
+
         print("damage---------maxDamage------size-----------maxSize--------id-------------name-----------label----------hasTag---------location-------quantity-------")
         for i=1, tableLength(resultsTable) do -- item attributes
           for o=1, 8 do
@@ -77,6 +78,7 @@ while true do -- MAIN LOOP
             for e=1, (15 - string.len(resultsTable[i].size)) do io.write(" ") end
           end
         end
+
         print("Request (enter location #) / Search Again (s) / Exit (e)") -- next move?
         local itemLocation = io.read()
         if itemLocation == "E" or itemLocation == "e" then
@@ -91,15 +93,16 @@ while true do -- MAIN LOOP
           payLoadArray[-1] = itemLocation
           payLoadArray[10] = itemQuantity
           payLoad = serialization.serialize(payLoadArray)
+
           modem.broadcast(inventoryTerminalPort, payLoad)
           print("-> Item request Sent. Listenting for response...")
           local id, arg1, arg2, arg3, arg4, arg5 = event.pullMultiple(10, "modem_message")
           -- for modem_message: id, localNetworkCard, remoteAddress, port, distance, payload
           if id == "modem_message" and arg5 == "done" then
             transposer.transferItem(transceiver, incomingChest, itemQuantity, 9)
-            print("-> Item received.")
+            print("--> Item received.")
           else
-            print("-> No response!")
+            print("--> No response!")
             loop = false
             break
           end
